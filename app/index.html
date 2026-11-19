@@ -1,86 +1,91 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Vice Cover — GTA 6 style cover art maker</title>
-  <meta name="description" content="Vice Cover: a multi-panel GTA 6 style cover art maker. Pick two photos, a title and a tagline, choose a layout and a colour grade, export a PNG.">
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vice Cover — GTA 6 Style Cover Art Maker</title>
+<link rel="stylesheet" href="style.css">
+<link rel="preload" href="fonts/Anton-Regular.ttf" as="font" type="font/ttf" crossorigin>
 </head>
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <span class="brand-mark">VC</span>
-      <div>
-        <h1>Vice Cover</h1>
-        <p class="subtitle">Multi-panel GTA 6 style cover art maker</p>
+<header class="topbar">
+  <div class="brand"><span class="brand-mark">VC</span><span class="brand-name">VICE COVER</span></div>
+  <p class="brand-sub">Multi-panel GTA 6 style cover art maker</p>
+</header>
+<main class="layout">
+  <section class="preview-pane" aria-label="Cover preview">
+    <canvas id="cover" width="1080" height="1080"></canvas>
+    <p class="preview-hint" id="preview-hint">Live preview — every change redraws instantly.</p>
+  </section>
+  <aside class="panel" aria-label="Cover controls">
+    <h2>Make your cover</h2>
+    <div class="field">
+      <label for="photo1">Photo 1</label>
+      <div class="photo-row">
+        <img id="thumb1" src="samples/boulevard.jpg" alt="Photo 1 preview">
+        <div class="photo-actions">
+          <button type="button" class="btn ghost" id="use-sample1">Use boulevard sample</button>
+          <label class="btn ghost upload-label">Upload<input type="file" id="photo1" accept="image/*" hidden></label>
+        </div>
       </div>
     </div>
-    <p class="top-hint">Pick two photos, write the title, export the cover.</p>
-  </header>
-
-  <main class="layout">
-    <section class="preview" aria-label="Cover preview">
-      <canvas id="coverCanvas" width="1080" height="1080"></canvas>
-      <p class="preview-note">Live preview — every change redraws instantly.</p>
-    </section>
-
-    <aside class="controls" aria-label="Cover controls">
-      <fieldset>
-        <legend>Photos</legend>
-        <label class="field">Photo 1
-          <input id="photo1Input" type="file" accept="image/*">
-        </label>
-        <label class="field">Photo 2
-          <input id="photo2Input" type="file" accept="image/*">
-        </label>
-        <button id="sampleBtn" type="button" class="btn ghost">Use the sample photos</button>
-      </fieldset>
-
-      <fieldset>
-        <legend>Words</legend>
-        <label class="field">Title
-          <input id="captionInput" type="text" maxlength="60" value="VICE CITY" autocomplete="off">
-        </label>
-        <label class="field">Tagline
-          <input id="taglineInput" type="text" maxlength="90" value="Sunset boulevard, neon nights." autocomplete="off">
-        </label>
-      </fieldset>
-
-      <fieldset>
-        <legend>Look</legend>
-        <label class="field">Layout
-          <select id="layoutSelect">
-            <option value="trio">Trio — three panels</option>
-            <option value="quad">Quad — four panels</option>
-            <option value="duo">Duo — two panels</option>
-          </select>
-        </label>
-        <label class="field">Colour grade
-          <select id="gradeSelect">
-            <option value="sunset">Sunset — warm dusk</option>
-            <option value="neon">Neon — pink &amp; cyan</option>
-            <option value="teal">Teal — cool lagoon</option>
-          </select>
-        </label>
-        <label class="field">Size
-          <select id="sizeSelect">
-            <option value="square">Square · 1080 x 1080</option>
-            <option value="portrait">Portrait · 1024 x 1280</option>
-            <option value="wide">Wide · 1280 x 720</option>
-          </select>
-        </label>
-        <label class="field">Grade strength <span id="mixValue" class="mix-value">35%</span>
-          <input id="mixRange" type="range" min="0" max="100" value="35">
-        </label>
-      </fieldset>
-
-      <button id="exportBtn" type="button" class="btn primary">Export PNG</button>
-      <p class="share">Share this cover: <code id="shareLink"></code></p>
-      <p class="fineprint">Runs fully offline in your browser. Photos never leave your device.</p>
-    </aside>
-  </main>
-
-  <script type="module" src="src/main.js"></script>
+    <div class="field">
+      <label for="photo2">Photo 2</label>
+      <div class="photo-row">
+        <img id="thumb2" src="samples/pier.jpg" alt="Photo 2 preview">
+        <div class="photo-actions">
+          <button type="button" class="btn ghost" id="use-sample2">Use pier sample</button>
+          <label class="btn ghost upload-label">Upload<input type="file" id="photo2" accept="image/*" hidden></label>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label for="caption">Title</label>
+      <input type="text" id="caption" maxlength="24" value="VICE CITY" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="tagline">Tagline</label>
+      <input type="text" id="tagline" maxlength="48" value="WELCOME BACK" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Layout</label>
+      <div class="seg" id="layout-seg" role="group" aria-label="Panel layout">
+        <button type="button" data-value="trio" class="active">Trio</button>
+        <button type="button" data-value="quad">Quad</button>
+        <button type="button" data-value="duo">Duo</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Colour grade</label>
+      <div class="seg" id="grade-seg" role="group" aria-label="Colour grade">
+        <button type="button" data-value="sunset" class="active">Sunset</button>
+        <button type="button" data-value="neon">Neon</button>
+        <button type="button" data-value="teal">Teal</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Size</label>
+      <div class="seg" id="size-seg" role="group" aria-label="Cover size">
+        <button type="button" data-value="square" class="active">Square 1080×1080</button>
+        <button type="button" data-value="portrait">Portrait 1024×1280</button>
+        <button type="button" data-value="wide">Wide 1280×720</button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="mix">Grade strength <span id="mix-value">55%</span></label>
+      <input type="range" id="mix" min="0" max="100" value="55">
+    </div>
+    <div class="actions">
+      <button type="button" class="btn primary" id="export">Export PNG</button>
+      <button type="button" class="btn ghost" id="copy-link">Copy share link</button>
+      <button type="button" class="btn ghost" id="shuffle">Shuffle look</button>
+    </div>
+    <p class="fineprint">Anton typeface — SIL Open Font License 1.1, see fonts/OFL.txt. Photos stay on your device; nothing is uploaded.</p>
+  </aside>
+</main>
+<script src="src/state.js"></script>
+<script src="src/cover.js"></script>
+<script src="src/main.js"></script>
+<script src="src/shots.js"></script>
 </body>
 </html>

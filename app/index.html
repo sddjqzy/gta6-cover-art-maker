@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vice Cover — GTA 6 style cover art maker</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<main class="app">
+  <div class="controls">
+    <h1>VICE COVER</h1>
+    <p class="lede">Turn your photos and a caption into multi-panel GTA 6 style cover art, and export it as a PNG to share. Your photos never leave this machine.</p>
+
+    <section aria-labelledby="photos-heading">
+      <h2 id="photos-heading">1 · Photos</h2>
+      <label class="field">Add your photos
+        <input id="photos" type="file" accept="image/*" multiple>
+      </label>
+      <div class="row">
+        <button id="sample-pier" class="action secondary" type="button">Try pier sample</button>
+        <button id="sample-boulevard" class="action secondary" type="button">Try boulevard sample</button>
+      </div>
+      <div id="photo-strip" aria-label="Loaded photos"></div>
+      <p id="photo-count">No photos yet — try a sample below</p>
+      <p class="hint">Click a thumbnail to make it the hero photo. With “one photo in every panel” off, each panel can show a different photo.</p>
+    </section>
+
+    <section aria-labelledby="layout-heading">
+      <h2 id="layout-heading">2 · Layout &amp; panels</h2>
+      <div id="layout-row" class="toggle-row" role="group" aria-label="Panel layout"></div>
+      <div id="panel-list"></div>
+      <div class="row">
+        <button id="fill-all" class="action secondary" type="button">One photo in every panel</button>
+        <button id="fill-each" class="action secondary" type="button">A different photo per panel</button>
+      </div>
+      <label class="field">Zoom selected panel
+        <input id="zoom" type="range" min="0.5" max="3" step="0.05" value="1">
+      </label>
+      <button id="reset-crop" class="action secondary" type="button">Reset selected panel crop</button>
+      <p class="hint">Drag a panel on the preview to slide its photo, scroll over it to zoom, click it to select it.</p>
+    </section>
+
+    <section aria-labelledby="words-heading">
+      <h2 id="words-heading">3 · Words &amp; colour</h2>
+      <label class="field">Title
+        <input id="title" type="text" maxlength="40" value="Sunset Heist">
+      </label>
+      <label class="field">Tagline
+        <input id="tagline" type="text" maxlength="48" value="A VICE CITY STORY">
+      </label>
+      <div id="grade-row" class="toggle-row" role="group" aria-label="Colour grade"></div>
+      <div id="lettering-row" class="toggle-row" role="group" aria-label="Title lettering"></div>
+    </section>
+
+    <section aria-labelledby="export-heading">
+      <h2 id="export-heading">4 · Export</h2>
+      <div id="size-row" class="toggle-row" role="group" aria-label="Export size"></div>
+      <button id="export" class="action big" type="button">Export PNG</button>
+      <p id="status" role="status"></p>
+    </section>
+  </div>
+
+  <div class="preview">
+    <canvas id="cover" width="1080" height="1080" aria-label="Live preview of your cover"></canvas>
+    <p>Live preview — drag a panel to crop, scroll to zoom.</p>
+  </div>
+</main>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>

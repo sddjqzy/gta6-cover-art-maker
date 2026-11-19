@@ -1,78 +1,76 @@
-// Vice Cover's state: one plain object holding every choice the editor makes,
-// plus a tiny subscribe/notify so any change re-renders the preview.
+// Vice Cover state: one plain object, defaults, and URL parsing.
 //
-// Nothing here touches the DOM or the canvas. main.js owns the images (an
-// <img> per photo key) and hands them to cover.js when it draws; this module
-// only remembers *which* photo, words, layout, grade and size are active.
+// Kept dependency-free on purpose: cover.js draws from this state,
+// main.js binds the controls to it, shots.js seeds it from the URL.
+(function (global) {
+  'use strict';
 
-export const PHOTOS = ['pier', 'boulevard'];
-
-export const LAYOUTS = ['trio', 'quad', 'duo'];
-
-export const GRADES = ['sunset', 'neon', 'teal'];
-
-export const SIZES = {
-  square: { label: 'Square 1080 x 1080', width: 1080, height: 1080 },
-  portrait: { label: 'Portrait 1024 x 1280', width: 1024, height: 1280 },
-  wide: { label: 'Wide 1280 x 720', width: 1280, height: 720 },
-};
-
-/** The editor's starting choices: pier first, boulevard second, trio sunset square. */
-export function defaultState() {
-  return {
-    photo: 'pier',
-    photo2: 'boulevard',
-    caption: 'VICE CITY NIGHTS',
-    tagline: 'Two shores. One score.',
-    layout: 'trio',
-    grade: 'sunset',
-    size: 'square',
-    // How the two photos share the panels: 'alt' alternates them panel by
-    // panel, 'one' fills every panel with the first photo.
-    mix: 'alt',
+  var SIZES = {
+    square: { width: 1080, height: 1080, label: 'Square 1080 x 1080' },
+    portrait: { width: 1024, height: 1280, label: 'Portrait 1024 x 1280' },
+    wide: { width: 1280, height: 720, label: 'Wide 1280 x 720' },
   };
-}
+  var LAYOUTS = ['trio', 'quad', 'duo'];
+  var GRADES = ['sunset', 'neon', 'teal'];
 
-const listeners = new Set();
-
-/** The live state object. Read it directly; change it only through update(). */
-export const state = defaultState();
-
-/** Merge `patch` into the state, then tell every subscriber to re-render. */
-export function update(patch) {
-  for (const [key, value] of Object.entries(patch)) {
-    if (key in state) state[key] = value;
+  function defaults() {
+    return {
+      caption: 'VICE CITY',
+      tagline: 'WELCOME BACK TO LEONIDA',
+      photo: 'samples/boulevard.jpg',
+      photo2: 'samples/pier.jpg',
+      layout: 'trio',
+      grade: 'sunset',
+      size: 'square',
+      mix: 0.55,
+      shot: 'editor',
+    };
   }
-  for (const fn of listeners) fn(state);
-}
 
-/** Reset every choice to the defaults and notify subscribers. */
-export function resetState() {
-  Object.assign(state, defaultState());
-  for (const fn of listeners) fn(state);
-}
+  function clamp01(value) {
+    var n = Number(value);
+    if (!isFinite(n)) return 0.55;
+    return Math.min(1, Math.max(0, n));
+  }
 
-/** Register a render callback; returns an unsubscribe function. */
-export function subscribe(fn) {
-  listeners.add(fn);
-  return () => listeners.delete(fn);
-}
+  function pick(value, allowed, fallback) {
+    return allowed.indexOf(value) !== -1 ? value : fallback;
+  }
 
-/** The pixel size of the cover the current state asks for. */
-export function coverSize(current = state) {
-  return SIZES[current.size] ?? SIZES.square;
-}
+  // Parse the editor's URL parameters. Unknown or out-of-range values
+  // fall back to the defaults instead of breaking the preview.
+  // Supported: ?shot=cover|editor, photo, photo2, caption, tagline,
+  // layout=trio|quad|duo, grade=sunset|neon|teal,
+  // size=square|portrait|wide, mix=0..1.
+  function fromSearch(search) {
+    var state = defaults();
+    var params = new URLSearchParams(search || '');
+    if (params.has('shot')) state.shot = pick(params.get('shot'), ['cover', 'editor'], 'editor');
+    if (params.has('photo') && params.get('photo')) state.photo = params.get('photo');
+    if (params.has('photo2') && params.get('photo2')) state.photo2 = params.get('photo2');
+    if (params.has('caption')) state.caption = params.get('caption').slice(0, 24);
+    if (params.has('tagline')) state.tagline = params.get('tagline').slice(0, 48);
+    if (params.has('layout')) state.layout = pick(params.get('layout'), LAYOUTS, 'trio');
+    if (params.has('grade')) state.grade = pick(params.get('grade'), GRADES, 'sunset');
+    if (params.has('size')) state.size = Object.prototype.hasOwnProperty.call(SIZES, params.get('size')) ? params.get('size') : 'square';
+    if (params.has('mix')) state.mix = clamp01(params.get('mix'));
+    return state;
+  }
 
-/**
- * Which photo key fills each panel of a layout, in panel order.
- * Panels are numbered left to right, top to bottom.
- */
-export function panelPhotos(current = state) {
-  const count = current.layout === 'quad' ? 4 : current.layout === 'duo' ? 2 : 3;
-  const first = current.photo;
-  const second = current.photo2;
-  if (current.mix === 'one' || !second) return Array(count).fill(first);
-  const out = [];
-  for (let i = 0; i < count; i++) out.push(i % 2 === 0 ? first : second);
-  return out;
-}
+  function sizeOf(state) {
+    return SIZES[state.size] || SIZES.square;
+  }
+
+  function toSearch(state) {
+    var params = new URLSearchParams();
+    params.set('caption', state.caption);
+    params.set('tagline', state.tagline);
+    params.set('layout', state.layout);
+    params.set('grade', state.grade);
+    params.set('size', state.size);
+    params.set('mix', String(state.mix));
+    return '?' + params.toString();
+  }
+
+  global.ViceCoverState = { defaults: defaults, fromSearch: fromSearch, sizeOf: sizeOf, toSearch: toSearch, SIZES: SIZES, LAYOUTS: LAYOUTS, GRADES: GRADES };
+})(window);

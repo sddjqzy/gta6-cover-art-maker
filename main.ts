@@ -1,41 +1,35 @@
-// Vice Cover's entrypoint (Node 22, standard library only): it hands the app
-// in. The app is this directory's app/ folder — plain static files a desktop
-// browser loads offline, no build step and no network request — and this
-// program copies app/ and screenshots/ from beside this file into the output
-// directory and writes /output/dossier.json with the vendored make.fun
-// library. Outside the grader, MAKEFUN_OUTPUT_DIR stands in for /output:
+// Build entry for the Vice Cover make.fun entry.
 //
-//   mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
-
-import { cpSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+// Copies app/ and screenshots/ into the output directory
+// (MAKEFUN_OUTPUT_DIR, default "out") and writes dossier.json
+// with vendor/makefun-app.ts's buildDossier, using the caps from
+// the bounty's gate: text_max_bytes 163840, at most 4 screenshots
+// of at most 262144 bytes each, at most 993 app files totalling
+// at most 50331648 bytes, each app path at most 1000 bytes.
+//
+// Run:  mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-app.ts';
 
-// The repository root: the directory this file lives in.
-const here = fileURLToPath(new URL('.', import.meta.url));
-// The grader hands the program a writable /output; locally the environment
-// variable picks where the entry goes instead.
-const out = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+const repo = resolve(fileURLToPath(new URL('.', import.meta.url)));
+const outDir = resolve(process.env.MAKEFUN_OUTPUT_DIR ?? 'out');
 
-mkdirSync(out, { recursive: true });
-cpSync(join(here, 'app'), join(out, 'app'), { recursive: true });
-mkdirSync(join(out, 'screenshots'), { recursive: true });
-if (existsSync(join(here, 'screenshots'))) {
-  cpSync(join(here, 'screenshots'), join(out, 'screenshots'), { recursive: true });
+rmSync(outDir, { recursive: true, force: true });
+mkdirSync(outDir, { recursive: true });
+for (const name of ['app', 'screenshots']) {
+  const src = join(repo, name);
+  if (!existsSync(src)) throw new Error(`missing ${name}/ in ${repo}`);
+  cpSync(src, join(outDir, name), { recursive: true });
 }
 
-// The scorer's own caps: only text_max_bytes shapes the bytes; the others
-// refuse an entry the scorer would refuse — more than 4 screenshots or one
-// over 256 KiB; more than 993 files in app/ or 48 MiB of app files in all,
-// or a path under app/ over 1000 bytes.
-writeFileSync(
-  join(out, 'dossier.json'),
-  buildDossier(out, {
-    text_max_bytes: 163840,
-    screenshots: { max: 4, max_bytes: 262144 },
-    app_max_files: 993,
-    app_max_bytes: 50331648,
-    app_path_max_bytes: 1000,
-  }),
-);
+const dossier = buildDossier(outDir, {
+  text_max_bytes: 163840,
+  screenshots: { max: 4, max_bytes: 262144 },
+  app_max_files: 993,
+  app_max_bytes: 50331648,
+  app_path_max_bytes: 1000,
+});
+writeFileSync(join(outDir, 'dossier.json'), dossier);
+console.log(`wrote ${join(outDir, 'dossier.json')} (${dossier.length} bytes)`);

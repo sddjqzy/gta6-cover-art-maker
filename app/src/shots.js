@@ -1,38 +1,46 @@
-// Fixed scenes for screenshots: ?shot=cover shows the finished cover alone,
-// ?shot=editor shows the editor with a photo loaded. The query also carries
-// the cover's choices: photo, photo2, caption, tagline, layout, grade, size
-// and mix. window.__shotReady is set once the scene has painted.
+// Vice Cover shot staging: arranges a fixed scene from the URL so the
+// screenshots are reproducible.
+//
+//   ?shot=cover   bare cover, no editor chrome, canvas fills the viewport
+//   ?shot=editor  full editor interface (the default)
+// Other parameters (photo, photo2, caption, tagline, layout, grade,
+// size, mix) come from state.js and are applied by main.js first.
+// When the scene is painted, window.__viceShotReady is set to true so
+// a screenshot script knows the frame is ready to capture.
+(function (global) {
+  'use strict';
 
-import { LAYOUTS, GRADES, SIZES, PHOTOS } from './state.js';
+  function stage() {
+    var state = global.ViceCover && global.ViceCover.state;
+    if (!state) return;
+    if (state.shot !== 'cover') {
+      global.__viceShotReady = true;
+      return;
+    }
+    global.document.body.classList.add('shot-cover');
+    var canvas = global.document.getElementById('coverCanvas');
+    // In cover mode the canvas is the whole page: size it to the
+    // requested cover size, CSS stretches it to the viewport.
+    global.ViceCover.redraw().then(function () {
+      if (canvas) {
+        canvas.style.width = '100vw';
+        canvas.style.height = '100vh';
+      }
+      global.__viceShotReady = true;
+    }).catch(function (err) {
+      console.error(err);
+      global.__viceShotReady = true;
+    });
+  }
 
-/** Pick a query value only when it is one of the allowed choices. */
-function pick(query, name, allowed, fallback) {
-  const value = query.get(name);
-  return value !== null && allowed.includes(value) ? value : fallback;
-}
+  function waitForEditor() {
+    if (global.ViceCover && global.ViceCover.state) { stage(); return; }
+    setTimeout(waitForEditor, 50);
+  }
 
-/** Read the cover choices out of the URL query, with sane defaults. */
-export function shotState(query) {
-  return {
-    photo: pick(query, 'photo', PHOTOS, 'pier'),
-    photo2: pick(query, 'photo2', PHOTOS, 'boulevard'),
-    caption: query.get('caption') ?? 'VICE CITY NIGHTS',
-    tagline: query.get('tagline') ?? 'Two shores. One score.',
-    layout: pick(query, 'layout', LAYOUTS, 'trio'),
-    grade: pick(query, 'grade', GRADES, 'sunset'),
-    size: pick(query, 'size', Object.keys(SIZES), 'square'),
-    mix: pick(query, 'mix', ['alt', 'one'], 'alt'),
-  };
-}
-
-/**
- * Set up a screenshot scene: hide the controls for a cover shot, apply the
- * query's choices through `apply`, wait for the paint, then flag readiness.
- */
-export async function runShot(shot, query, apply) {
-  if (shot === 'cover') document.body.classList.add('shot-cover');
-  await apply(shotState(query));
-  await document.fonts.ready;
-  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-  window.__shotReady = true;
-}
+  if (global.document.readyState === 'loading') {
+    global.document.addEventListener('DOMContentLoaded', waitForEditor);
+  } else {
+    waitForEditor();
+  }
+})(window);

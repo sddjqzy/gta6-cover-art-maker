@@ -1,75 +1,76 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vice Cover — Multi-Panel GTA 6 Style Cover Maker</title>
-<link rel="stylesheet" href="./style.css">
+<title>Vice Cover — GTA 6 style cover art maker</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<main class="app">
-  <section class="controls" aria-label="Cover editor">
-    <h1>Vice Cover</h1>
-    <p class="lede">Two photos, a caption and a grade — a multi-panel GTA-style cover, exported as a PNG.</p>
-
-    <fieldset>
-      <legend>First photo</legend>
-      <div class="pickers">
-        <button type="button" data-slot="photo" data-photo="pier">Pier</button>
-        <button type="button" data-slot="photo" data-photo="boulevard">Boulevard</button>
-        <label class="upload">Upload… <input id="photo-file" type="file" accept="image/*"></label>
-      </div>
-    </fieldset>
-
-    <fieldset>
-      <legend>Second photo</legend>
-      <div class="pickers">
-        <button type="button" data-slot="photo2" data-photo="pier">Pier</button>
-        <button type="button" data-slot="photo2" data-photo="boulevard">Boulevard</button>
-        <label class="upload">Upload… <input id="photo2-file" type="file" accept="image/*"></label>
-      </div>
-      <label class="mix"><input id="mix" type="checkbox"> Use the first photo in every panel</label>
-    </fieldset>
-
-    <label class="field">Caption
-      <input id="caption" type="text" maxlength="40" value="VICE CITY NIGHTS">
-    </label>
-    <label class="field">Tagline
-      <input id="tagline" type="text" maxlength="60" value="Two shores. One score.">
-    </label>
-
-    <fieldset>
-      <legend>Panels</legend>
-      <div class="radios">
-        <label><input type="radio" name="layout" value="trio" checked> Trio · 1 big + 2 small</label>
-        <label><input type="radio" name="layout" value="quad"> Quad · 2 × 2</label>
-        <label><input type="radio" name="layout" value="duo"> Duo · side by side</label>
-      </div>
-    </fieldset>
-
-    <fieldset>
-      <legend>Colour grade</legend>
-      <div class="radios">
-        <label><input type="radio" name="grade" value="sunset" checked> Sunset</label>
-        <label><input type="radio" name="grade" value="neon"> Neon</label>
-        <label><input type="radio" name="grade" value="teal"> Teal</label>
-      </div>
-    </fieldset>
-
-    <fieldset>
-      <legend>Size</legend>
-      <div class="radios">
-        <label><input type="radio" name="size" value="square" checked> Square 1080 × 1080</label>
-        <label><input type="radio" name="size" value="portrait"> Portrait 1024 × 1280</label>
-        <label><input type="radio" name="size" value="wide"> Wide 1280 × 720</label>
-      </div>
-    </fieldset>
-
-    <button id="export" type="button">Export PNG Square 1080 x 1080</button>
-    <p id="status" role="status"></p>
+<header class="topbar">
+  <h1>VICE <span>COVER</span></h1>
+  <p class="subtitle">Multi-panel GTA 6 style cover art maker</p>
+</header>
+<main class="editor">
+  <section class="preview" aria-label="Cover preview">
+    <canvas id="coverCanvas" width="1080" height="1080"></canvas>
+    <p class="hint">Live preview — every change redraws the cover instantly.</p>
   </section>
-  <canvas id="cover" width="1080" height="1080" aria-label="The cover preview"></canvas>
+  <aside class="panel" aria-label="Cover controls">
+    <label class="field">
+      <span>Title</span>
+      <input id="caption" type="text" value="VICE CITY" maxlength="24" autocomplete="off">
+    </label>
+    <label class="field">
+      <span>Tagline</span>
+      <input id="tagline" type="text" value="WELCOME BACK TO LEONIDA" maxlength="48" autocomplete="off">
+    </label>
+    <label class="field">
+      <span>Photo 1</span>
+      <input id="photo" type="file" accept="image/*">
+    </label>
+    <label class="field">
+      <span>Photo 2</span>
+      <input id="photo2" type="file" accept="image/*">
+    </label>
+    <label class="field">
+      <span>Layout</span>
+      <select id="layout">
+        <option value="trio" selected>Three panels</option>
+        <option value="quad">Four panels</option>
+        <option value="duo">Two panels</option>
+      </select>
+    </label>
+    <label class="field">
+      <span>Colour grade</span>
+      <select id="grade">
+        <option value="sunset" selected>Sunset — warm dusk</option>
+        <option value="neon">Neon — pink and cyan</option>
+        <option value="teal">Teal — ocean green</option>
+      </select>
+    </label>
+    <label class="field">
+      <span>Size</span>
+      <select id="size">
+        <option value="square" selected>Square — 1080 × 1080</option>
+        <option value="portrait">Portrait — 1024 × 1280</option>
+        <option value="wide">Wide — 1280 × 720</option>
+      </select>
+    </label>
+    <label class="field">
+      <span>Grade strength <output id="mixValue" for="mix">55%</output></span>
+      <input id="mix" type="range" min="0" max="100" value="55">
+    </label>
+    <div class="actions">
+      <button id="exportBtn" type="button">Export PNG</button>
+      <button id="resetBtn" type="button" class="ghost">Reset</button>
+    </div>
+    <p class="note">Photos stay in your browser — nothing is uploaded. Anton is bundled under the SIL Open Font License (see <code>fonts/OFL.txt</code>).</p>
+  </aside>
 </main>
-<script type="module" src="./src/main.js"></script>
+<script src="src/state.js"></script>
+<script src="src/cover.js"></script>
+<script src="src/main.js"></script>
+<script src="src/shots.js"></script>
 </body>
 </html>

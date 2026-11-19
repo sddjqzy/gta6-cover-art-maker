@@ -1,45 +1,153 @@
-/* Vice Cover's editor: a dark Vice City panel beside the live cover. */
 @font-face {
   font-family: 'Anton';
-  src: url('./fonts/Anton-Regular.ttf') format('truetype');
+  src: url('fonts/Anton-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
-html, body { margin: 0; min-height: 100%; background: #140a1c; color: #f5eef7; font: 15px/1.45 system-ui, sans-serif; }
-.app { display: flex; gap: 28px; align-items: flex-start; justify-content: center; padding: 24px; box-sizing: border-box; }
+* { box-sizing: border-box; }
 
-.controls { display: flex; flex-direction: column; gap: 14px; width: 300px; flex: none; }
-.controls h1 { margin: 0; font-family: 'Anton', sans-serif; font-size: 40px; letter-spacing: 2px; color: #ffb347; text-transform: uppercase; }
-.lede { margin: 0; color: #c9b8d1; }
+:root {
+  --bg: #0b0714;
+  --bg2: #160a26;
+  --panel: #1d1032;
+  --line: #3a2358;
+  --text: #f5eefc;
+  --muted: #b9a6d6;
+  --pink: #ff2e88;
+  --cyan: #2ee6ff;
+  --orange: #ff9a3d;
+  --gold: #ffd166;
+}
 
-fieldset { border: 1px solid #4a3554; border-radius: 8px; padding: 10px 12px; margin: 0; }
-legend { font-weight: 700; padding: 0 6px; color: #ffd9a0; }
-.field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
-.field input[type=text] { font: inherit; padding: 9px 10px; border: 1px solid #6b5578; border-radius: 6px; background: #241530; color: #fff; }
-.pickers { display: flex; gap: 8px; flex-wrap: wrap; }
-.pickers button, .upload { font: inherit; font-weight: 600; padding: 7px 12px; border: 1px solid #6b5578; border-radius: 6px; background: #2a1836; color: #f5eef7; cursor: pointer; }
-.pickers button:hover, .upload:hover { border-color: #ffb347; }
-.upload input { display: none; }
-.mix { display: flex; gap: 8px; align-items: center; margin-top: 10px; font-weight: 400; color: #c9b8d1; cursor: pointer; }
-.radios { display: flex; flex-direction: column; gap: 6px; }
-.radios label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
-.radios input { accent-color: #ff7a1a; }
+html, body { margin: 0; padding: 0; }
 
-#export { font: inherit; font-weight: 700; padding: 12px; border: 0; border-radius: 8px; background: linear-gradient(90deg, #ff7a1a, #d63078); color: #fff; cursor: pointer; }
-#export:hover { filter: brightness(1.1); }
-#status { margin: 0; min-height: 1.4em; color: #8fe3c0; }
+body {
+  background:
+    radial-gradient(900px 500px at 85% -10%, rgba(255, 46, 136, .28), transparent 60%),
+    radial-gradient(800px 500px at -10% 110%, rgba(46, 230, 255, .18), transparent 60%),
+    linear-gradient(160deg, var(--bg2), var(--bg));
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  min-height: 100vh;
+}
 
-canvas { width: min(72vh, calc(100vw - 380px)); height: auto; max-height: calc(100vh - 48px); background: #160a1e; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55); }
+.topbar {
+  padding: 20px 28px 8px;
+  border-bottom: 1px solid var(--line);
+}
 
-/* Screenshot mode: the cover alone, edge to edge. */
-body.shot-cover .controls { display: none; }
-body.shot-cover .app { padding: 0; }
-body.shot-cover canvas { width: 100vw; height: 100vh; max-height: none; object-fit: contain; box-shadow: none; }
+.topbar h1 {
+  font-family: 'Anton', system-ui, sans-serif;
+  font-size: 44px;
+  letter-spacing: 3px;
+  margin: 0;
+  line-height: 1;
+  color: var(--text);
+  text-shadow: 0 0 24px rgba(255, 46, 136, .55), 3px 3px 0 var(--pink);
+}
 
-@media (max-width: 760px) {
-  .app { flex-direction: column; align-items: center; }
-  .controls { width: 100%; max-width: 480px; }
-  canvas { width: 100%; max-height: none; }
+.topbar h1 span { color: var(--cyan); text-shadow: 0 0 24px rgba(46, 230, 255, .55), 3px 3px 0 #0e7d99; }
+
+.subtitle { margin: 6px 0 12px; color: var(--muted); font-size: 14px; letter-spacing: 1px; }
+
+.editor {
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+  padding: 24px 28px 40px;
+  max-width: 1280px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.preview { flex: 1 1 520px; min-width: 320px; }
+.preview canvas {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, .6), 0 0 0 1px var(--line), 0 0 44px rgba(255, 46, 136, .18);
+  background: #000;
+}
+
+.hint { color: var(--muted); font-size: 13px; }
+
+.panel {
+  flex: 0 1 340px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
+.field > span { color: var(--muted); letter-spacing: .4px; font-weight: 600; }
+.field output { color: var(--gold); font-weight: 700; }
+
+input[type="text"], select {
+  background: #12081f;
+  border: 1px solid var(--line);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 15px;
+  width: 100%;
+}
+
+input[type="text"]:focus, select:focus, input[type="range"]:focus-visible, button:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+}
+
+input[type="file"] { font-size: 13px; color: var(--muted); }
+input[type="range"] { width: 100%; accent-color: var(--pink); }
+
+.actions { display: flex; gap: 10px; margin-top: 4px; }
+
+button {
+  cursor: pointer;
+  border: 0;
+  border-radius: 8px;
+  padding: 12px 18px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: .4px;
+  background: linear-gradient(90deg, var(--pink), var(--orange));
+  color: #fff;
+  box-shadow: 0 6px 22px rgba(255, 46, 136, .35);
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+
+.note { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 0; }
+.note code { color: var(--gold); }
+
+/* Bare-cover mode used by ?shot=cover screenshots: no chrome, just the canvas. */
+body.shot-cover { background: #000; }
+body.shot-cover .topbar, body.shot-cover .panel, body.shot-cover .hint { display: none; }
+body.shot-cover .editor { padding: 0; margin: 0; max-width: none; display: block; }
+body.shot-cover .preview { flex: none; min-width: 0; }
+body.shot-cover .preview canvas {
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  border-radius: 0;
+  box-shadow: none;
+  object-fit: contain;
+}
+
+@media (max-width: 720px) {
+  .topbar h1 { font-size: 34px; }
+  .editor { padding: 16px; gap: 18px; }
 }

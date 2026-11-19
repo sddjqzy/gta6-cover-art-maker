@@ -1,76 +1,86 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Vice Cover — GTA 6 style cover art maker</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Vice Cover — GTA 6 style cover art maker</title>
+  <meta name="description" content="Vice Cover: a multi-panel GTA 6 style cover art maker. Pick two photos, a title and a tagline, choose a layout and a colour grade, export a PNG.">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="topbar">
-  <h1>VICE <span>COVER</span></h1>
-  <p class="subtitle">Multi-panel GTA 6 style cover art maker</p>
-</header>
-<main class="editor">
-  <section class="preview" aria-label="Cover preview">
-    <canvas id="coverCanvas" width="1080" height="1080"></canvas>
-    <p class="hint">Live preview — every change redraws the cover instantly.</p>
-  </section>
-  <aside class="panel" aria-label="Cover controls">
-    <label class="field">
-      <span>Title</span>
-      <input id="caption" type="text" value="VICE CITY" maxlength="24" autocomplete="off">
-    </label>
-    <label class="field">
-      <span>Tagline</span>
-      <input id="tagline" type="text" value="WELCOME BACK TO LEONIDA" maxlength="48" autocomplete="off">
-    </label>
-    <label class="field">
-      <span>Photo 1</span>
-      <input id="photo" type="file" accept="image/*">
-    </label>
-    <label class="field">
-      <span>Photo 2</span>
-      <input id="photo2" type="file" accept="image/*">
-    </label>
-    <label class="field">
-      <span>Layout</span>
-      <select id="layout">
-        <option value="trio" selected>Three panels</option>
-        <option value="quad">Four panels</option>
-        <option value="duo">Two panels</option>
-      </select>
-    </label>
-    <label class="field">
-      <span>Colour grade</span>
-      <select id="grade">
-        <option value="sunset" selected>Sunset — warm dusk</option>
-        <option value="neon">Neon — pink and cyan</option>
-        <option value="teal">Teal — ocean green</option>
-      </select>
-    </label>
-    <label class="field">
-      <span>Size</span>
-      <select id="size">
-        <option value="square" selected>Square — 1080 × 1080</option>
-        <option value="portrait">Portrait — 1024 × 1280</option>
-        <option value="wide">Wide — 1280 × 720</option>
-      </select>
-    </label>
-    <label class="field">
-      <span>Grade strength <output id="mixValue" for="mix">55%</output></span>
-      <input id="mix" type="range" min="0" max="100" value="55">
-    </label>
-    <div class="actions">
-      <button id="exportBtn" type="button">Export PNG</button>
-      <button id="resetBtn" type="button" class="ghost">Reset</button>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">VC</span>
+      <div>
+        <h1>Vice Cover</h1>
+        <p class="subtitle">Multi-panel GTA 6 style cover art maker</p>
+      </div>
     </div>
-    <p class="note">Photos stay in your browser — nothing is uploaded. Anton is bundled under the SIL Open Font License (see <code>fonts/OFL.txt</code>).</p>
-  </aside>
-</main>
-<script src="src/state.js"></script>
-<script src="src/cover.js"></script>
-<script src="src/main.js"></script>
-<script src="src/shots.js"></script>
+    <p class="top-hint">Pick two photos, write the title, export the cover.</p>
+  </header>
+
+  <main class="layout">
+    <section class="preview" aria-label="Cover preview">
+      <canvas id="coverCanvas" width="1080" height="1080"></canvas>
+      <p class="preview-note">Live preview — every change redraws instantly.</p>
+    </section>
+
+    <aside class="controls" aria-label="Cover controls">
+      <fieldset>
+        <legend>Photos</legend>
+        <label class="field">Photo 1
+          <input id="photo1Input" type="file" accept="image/*">
+        </label>
+        <label class="field">Photo 2
+          <input id="photo2Input" type="file" accept="image/*">
+        </label>
+        <button id="sampleBtn" type="button" class="btn ghost">Use the sample photos</button>
+      </fieldset>
+
+      <fieldset>
+        <legend>Words</legend>
+        <label class="field">Title
+          <input id="captionInput" type="text" maxlength="60" value="VICE CITY" autocomplete="off">
+        </label>
+        <label class="field">Tagline
+          <input id="taglineInput" type="text" maxlength="90" value="Sunset boulevard, neon nights." autocomplete="off">
+        </label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Look</legend>
+        <label class="field">Layout
+          <select id="layoutSelect">
+            <option value="trio">Trio — three panels</option>
+            <option value="quad">Quad — four panels</option>
+            <option value="duo">Duo — two panels</option>
+          </select>
+        </label>
+        <label class="field">Colour grade
+          <select id="gradeSelect">
+            <option value="sunset">Sunset — warm dusk</option>
+            <option value="neon">Neon — pink &amp; cyan</option>
+            <option value="teal">Teal — cool lagoon</option>
+          </select>
+        </label>
+        <label class="field">Size
+          <select id="sizeSelect">
+            <option value="square">Square · 1080 x 1080</option>
+            <option value="portrait">Portrait · 1024 x 1280</option>
+            <option value="wide">Wide · 1280 x 720</option>
+          </select>
+        </label>
+        <label class="field">Grade strength <span id="mixValue" class="mix-value">35%</span>
+          <input id="mixRange" type="range" min="0" max="100" value="35">
+        </label>
+      </fieldset>
+
+      <button id="exportBtn" type="button" class="btn primary">Export PNG</button>
+      <p class="share">Share this cover: <code id="shareLink"></code></p>
+      <p class="fineprint">Runs fully offline in your browser. Photos never leave your device.</p>
+    </aside>
+  </main>
+
+  <script type="module" src="src/main.js"></script>
 </body>
 </html>

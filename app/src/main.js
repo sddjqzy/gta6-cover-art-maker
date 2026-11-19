@@ -1,114 +1,138 @@
-// Vice Cover editor logic: binds the controls to the state, redraws
-// the live preview on every change, and exports the cover as a PNG.
-// URL parameters (?caption=&layout=&grade=&size=&mix=...) seed the
-// editor on load; shots.js takes over when ?shot=cover is set.
-(function (global) {
-  'use strict';
+// Vice Cover — editor wiring.
+// Loads the two photos, binds every control to the live preview, exports
+// the finished cover as a PNG, and honours shareable URL parameters.
 
-  var state = null;
-  var canvas = null;
-  var drawing = null;
+import { DEFAULT_STATE, SIZES, stateFromParams, stateToQuery } from './state.js';
+import { drawCover, loadImage } from './cover.js';
+import { prepareShot, shotMode } from './shots.js';
 
-  function $(id) { return global.document.getElementById(id); }
+const $ = (id) => document.getElementById(id);
 
-  function redraw() {
-    if (!canvas || !state) return Promise.resolve();
-    if (!drawing) {
-      drawing = global.ViceCoverDraw.drawCover(canvas, state)
-        .catch(function (err) { console.error(err); })
-        .finally(function () { drawing = null; });
-    }
-    return drawing;
+const state = stateFromParams(window.location.search);
+const mode = shotMode(window.location.search);
+prepareShot(document, mode);
+
+// The two photos, loaded once and reloaded on upload.
+const photos = { photo1: null, photo2: null };
+let renderToken = 0;
+
+async function loadPhoto(key, src) {
+  try {
+    photos[key] = await loadImage(src);
+  } catch {
+    photos[key] = await loadImage(DEFAULT_STATE[key]);
   }
+}
 
-  function readFileAsDataURL(file) {
-    return new Promise(function (resolve, reject) {
-      var reader = new FileReader();
-      reader.onload = function () { resolve(reader.result); };
-      reader.onerror = function () { reject(new Error('could not read file')); };
-      reader.readAsDataURL(file);
-    });
+function render() {
+  const token = ++renderToken;
+  const canvas = $('coverCanvas');
+  try {
+    drawCover(canvas, state, photos);
+  } catch (err) {
+    console.error('render failed', err);
   }
-
-  function bindFileInput(input, key) {
-    input.addEventListener('change', function () {
-      var file = input.files && input.files[0];
-      if (!file) return;
-      readFileAsDataURL(file).then(function (url) {
-        state[key] = url;
-        redraw();
-      }).catch(function (err) { console.error(err); });
-    });
+  // Signal staged screenshots that this frame is done.
+  if (token === renderToken) {
+    window.__viceCoverReady = true;
+    document.body.dataset.rendered = 'true';
   }
+}
 
-  function slug(text) {
-    return (text || 'vice-cover').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'vice-cover';
+function syncControls() {
+  $('captionInput').value = state.caption;
+  $('taglineInput').value = state.tagline;
+  $('layoutSelect').value = state.layout;
+  $('gradeSelect').value = state.grade;
+  $('sizeSelect').value = state.size;
+  $('mixRange').value = String(state.mix);
+  $('mixValue').textContent = `${state.mix}%`;
+  $('shareLink').textContent = `${window.location.pathname}?${stateToQuery(state)}`;
+}
+
+function bindControls() {
+  $('captionInput').addEventListener('input', (e) => {
+    state.caption = e.target.value;
+    syncShareOnly();
+    render();
+  });
+  $('taglineInput').addEventListener('input', (e) => {
+    state.tagline = e.target.value;
+    syncShareOnly();
+    render();
+  });
+  $('layoutSelect').addEventListener('change', (e) => { state.layout = e.target.value; afterChange(); });
+  $('gradeSelect').addEventListener('change', (e) => { state.grade = e.target.value; afterChange(); });
+  $('sizeSelect').addEventListener('change', (e) => { state.size = e.target.value; afterChange(); });
+  $('mixRange').addEventListener('input', (e) => {
+    state.mix = Number(e.target.value);
+    $('mixValue').textContent = `${state.mix}%`;
+    syncShareOnly();
+    render();
+  });
+  $('photo1Input').addEventListener('change', (e) => onUpload('photo1', e.target.files[0]));
+  $('photo2Input').addEventListener('change', (e) => onUpload('photo2', e.target.files[0]));
+  $('sampleBtn').addEventListener('click', async () => {
+    state.photo1 = DEFAULT_STATE.photo1;
+    state.photo2 = DEFAULT_STATE.photo2;
+    await loadPhoto('photo1', state.photo1);
+    await loadPhoto('photo2', state.photo2);
+    render();
+  });
+  $('exportBtn').addEventListener('click', exportPng);
+}
+
+function syncShareOnly() {
+  $('shareLink').textContent = `${window.location.pathname}?${stateToQuery(state)}`;
+}
+
+function afterChange() {
+  syncControls();
+  render();
+}
+
+async function onUpload(key, file) {
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  try {
+    photos[key] = await loadImage(url);
+    state[key] = file.name;
+    render();
+  } catch {
+    URL.revokeObjectURL(url);
   }
+}
 
-  function exportPNG() {
-    redraw().then(function () {
-      canvas.toBlob(function (blob) {
-        if (!blob) return;
-        var url = URL.createObjectURL(blob);
-        var a = global.document.createElement('a');
-        a.href = url;
-        a.download = slug(state.caption) + '-' + state.layout + '-' + state.grade + '-' + state.size + '.png';
-        a.click();
-        setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
-      }, 'image/png');
-    });
+function exportPng() {
+  const offscreen = document.createElement('canvas');
+  drawCover(offscreen, state, photos);
+  offscreen.toBlob((blob) => {
+    if (!blob) return;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'vice-cover.png';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  }, 'image/png');
+}
+
+async function init() {
+  bindControls();
+  syncControls();
+  document.fonts?.load('16px Anton').catch(() => {});
+  await Promise.all([
+    loadPhoto('photo1', state.photo1),
+    loadPhoto('photo2', state.photo2),
+  ]);
+  // Size options show their pixel dimensions.
+  for (const option of $('sizeSelect').options) {
+    const size = SIZES[option.value];
+    if (size) option.textContent = size.label;
   }
+  render();
+  // Re-render once the display font arrives so the title uses Anton.
+  document.fonts?.ready.then(() => render()).catch(() => {});
+}
 
-  function init() {
-    state = global.ViceCoverState.fromSearch(global.location.search);
-    canvas = $('coverCanvas');
-    global.ViceCover = { state: state, redraw: redraw, exportPNG: exportPNG };
-
-    // Seed the controls from the state (URL params included).
-    $('caption').value = state.caption;
-    $('tagline').value = state.tagline;
-    $('layout').value = state.layout;
-    $('grade').value = state.grade;
-    $('size').value = state.size;
-    $('mix').value = String(Math.round(state.mix * 100));
-    $('mixValue').textContent = Math.round(state.mix * 100) + '%';
-
-    $('caption').addEventListener('input', function (e) { state.caption = e.target.value; redraw(); });
-    $('tagline').addEventListener('input', function (e) { state.tagline = e.target.value; redraw(); });
-    $('layout').addEventListener('change', function (e) { state.layout = e.target.value; redraw(); });
-    $('grade').addEventListener('change', function (e) { state.grade = e.target.value; redraw(); });
-    $('size').addEventListener('change', function (e) { state.size = e.target.value; redraw(); });
-    $('mix').addEventListener('input', function (e) {
-      state.mix = Number(e.target.value) / 100;
-      $('mixValue').textContent = e.target.value + '%';
-      redraw();
-    });
-    bindFileInput($('photo'), 'photo');
-    bindFileInput($('photo2'), 'photo2');
-    $('exportBtn').addEventListener('click', exportPNG);
-    $('resetBtn').addEventListener('click', function () {
-      var fresh = global.ViceCoverState.defaults();
-      fresh.shot = state.shot;
-      state = fresh;
-      global.ViceCover.state = state;
-      $('caption').value = state.caption;
-      $('tagline').value = state.tagline;
-      $('layout').value = state.layout;
-      $('grade').value = state.grade;
-      $('size').value = state.size;
-      $('mix').value = String(Math.round(state.mix * 100));
-      $('mixValue').textContent = Math.round(state.mix * 100) + '%';
-      $('photo').value = '';
-      $('photo2').value = '';
-      redraw();
-    });
-
-    redraw();
-  }
-
-  if (global.document.readyState === 'loading') {
-    global.document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
-})(window);
+init();

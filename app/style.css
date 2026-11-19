@@ -1,153 +1,206 @@
+/* Vice Cover — dark neon editor styling to match the GTA 6 mood. */
+
 @font-face {
   font-family: 'Anton';
-  src: url('fonts/Anton-Regular.ttf') format('truetype');
-  font-weight: 400;
   font-style: normal;
+  font-weight: 400;
   font-display: swap;
+  src: url('fonts/Anton-Regular.ttf') format('truetype');
+}
+
+:root {
+  --bg: #0b0b12;
+  --panel: #151522;
+  --panel-2: #1d1d30;
+  --ink: #f4f1ff;
+  --muted: #a9a7c2;
+  --pink: #ff2e88;
+  --cyan: #00e5ff;
+  --amber: #ff7a1a;
+  --line: #2c2c44;
 }
 
 * { box-sizing: border-box; }
 
-:root {
-  --bg: #0b0714;
-  --bg2: #160a26;
-  --panel: #1d1032;
-  --line: #3a2358;
-  --text: #f5eefc;
-  --muted: #b9a6d6;
-  --pink: #ff2e88;
-  --cyan: #2ee6ff;
-  --orange: #ff9a3d;
-  --gold: #ffd166;
-}
-
 html, body { margin: 0; padding: 0; }
 
 body {
-  background:
-    radial-gradient(900px 500px at 85% -10%, rgba(255, 46, 136, .28), transparent 60%),
-    radial-gradient(800px 500px at -10% 110%, rgba(46, 230, 255, .18), transparent 60%),
-    linear-gradient(160deg, var(--bg2), var(--bg));
-  color: var(--text);
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   min-height: 100vh;
 }
 
 .topbar {
-  padding: 20px 28px 8px;
-  border-bottom: 1px solid var(--line);
-}
-
-.topbar h1 {
-  font-family: 'Anton', system-ui, sans-serif;
-  font-size: 44px;
-  letter-spacing: 3px;
-  margin: 0;
-  line-height: 1;
-  color: var(--text);
-  text-shadow: 0 0 24px rgba(255, 46, 136, .55), 3px 3px 0 var(--pink);
-}
-
-.topbar h1 span { color: var(--cyan); text-shadow: 0 0 24px rgba(46, 230, 255, .55), 3px 3px 0 #0e7d99; }
-
-.subtitle { margin: 6px 0 12px; color: var(--muted); font-size: 14px; letter-spacing: 1px; }
-
-.editor {
   display: flex;
-  gap: 28px;
-  align-items: flex-start;
-  padding: 24px 28px 40px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(90deg, rgba(255, 46, 136, 0.16), rgba(0, 229, 255, 0.10) 55%, transparent);
+}
+
+.brand { display: flex; align-items: center; gap: 14px; }
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--pink), var(--amber));
+  color: #fff;
+  font-family: 'Anton', "Arial Black", sans-serif;
+  font-size: 26px;
+  letter-spacing: 1px;
+  box-shadow: 0 0 24px rgba(255, 46, 136, 0.45);
+}
+
+h1 {
+  margin: 0;
+  font-family: 'Anton', "Arial Black", sans-serif;
+  font-size: 30px;
+  font-weight: 400;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.subtitle { margin: 2px 0 0; color: var(--muted); font-size: 14px; }
+
+.top-hint { margin: 0; color: var(--muted); font-size: 14px; }
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 24px;
+  align-items: start;
   max-width: 1280px;
   margin: 0 auto;
-  flex-wrap: wrap;
+  padding: 24px;
 }
 
-.preview { flex: 1 1 520px; min-width: 320px; }
-.preview canvas {
+.preview { min-width: 0; }
+
+#coverCanvas {
   display: block;
   width: 100%;
-  max-width: 640px;
+  max-width: 760px;
+  max-height: 560px;
   height: auto;
-  border-radius: 10px;
-  box-shadow: 0 18px 60px rgba(0, 0, 0, .6), 0 0 0 1px var(--line), 0 0 44px rgba(255, 46, 136, .18);
+  margin: 0 auto;
+  border-radius: 6px;
   background: #000;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--line);
 }
 
-.hint { color: var(--muted); font-size: 13px; }
+.preview-note { text-align: center; color: var(--muted); font-size: 13px; }
 
-.panel {
-  flex: 0 1 340px;
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
+  padding: 18px;
 }
 
-.field { display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
-.field > span { color: var(--muted); letter-spacing: .4px; font-weight: 600; }
-.field output { color: var(--gold); font-weight: 700; }
-
-input[type="text"], select {
-  background: #12081f;
-  border: 1px solid var(--line);
-  color: var(--text);
-  border-radius: 8px;
-  padding: 10px 12px;
-  font-size: 15px;
-  width: 100%;
-}
-
-input[type="text"]:focus, select:focus, input[type="range"]:focus-visible, button:focus-visible {
-  outline: 2px solid var(--cyan);
-  outline-offset: 2px;
-}
-
-input[type="file"] { font-size: 13px; color: var(--muted); }
-input[type="range"] { width: 100%; accent-color: var(--pink); }
-
-.actions { display: flex; gap: 10px; margin-top: 4px; }
-
-button {
-  cursor: pointer;
+fieldset {
+  margin: 0;
+  padding: 0;
   border: 0;
+}
+
+legend {
+  font-family: 'Anton', "Arial Black", sans-serif;
+  font-size: 15px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--cyan);
+  padding: 0;
+  margin-bottom: 10px;
+}
+
+.field {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.field input[type="text"],
+.field input[type="file"],
+.field select {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 12px 18px;
+  background: var(--panel-2);
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.field input[type="text"]:focus,
+.field select:focus {
+  outline: 2px solid var(--pink);
+  outline-offset: 1px;
+}
+
+.field input[type="range"] { width: 100%; accent-color: var(--pink); }
+
+.mix-value { color: var(--ink); font-weight: 600; }
+
+.btn {
+  border: 0;
+  border-radius: 10px;
+  padding: 12px 16px;
   font-size: 15px;
   font-weight: 700;
-  letter-spacing: .4px;
-  background: linear-gradient(90deg, var(--pink), var(--orange));
+  cursor: pointer;
+}
+
+.btn.primary {
+  background: linear-gradient(90deg, var(--pink), var(--amber));
   color: #fff;
-  box-shadow: 0 6px 22px rgba(255, 46, 136, .35);
+  box-shadow: 0 6px 24px rgba(255, 46, 136, 0.35);
 }
 
-button.ghost {
+.btn.ghost {
+  width: 100%;
   background: transparent;
-  color: var(--text);
-  border: 1px solid var(--line);
-  box-shadow: none;
+  color: var(--cyan);
+  border: 1px solid var(--cyan);
 }
 
-.note { color: var(--muted); font-size: 12px; line-height: 1.5; margin: 0; }
-.note code { color: var(--gold); }
+.share { font-size: 12px; color: var(--muted); word-break: break-all; }
+.share code { color: var(--ink); }
 
-/* Bare-cover mode used by ?shot=cover screenshots: no chrome, just the canvas. */
+.fineprint { margin: 0; font-size: 12px; color: var(--muted); }
+
+/* Staged cover shots: the cover alone, edge to edge. */
 body.shot-cover { background: #000; }
-body.shot-cover .topbar, body.shot-cover .panel, body.shot-cover .hint { display: none; }
-body.shot-cover .editor { padding: 0; margin: 0; max-width: none; display: block; }
-body.shot-cover .preview { flex: none; min-width: 0; }
-body.shot-cover .preview canvas {
+body.shot-cover .topbar,
+body.shot-cover .controls,
+body.shot-cover .preview-note { display: none; }
+body.shot-cover .layout {
+  display: block;
+  max-width: none;
+  padding: 0;
+}
+body.shot-cover #coverCanvas {
+  max-width: none;
+  max-height: none;
   width: 100vw;
   height: 100vh;
-  max-width: none;
+  object-fit: contain;
   border-radius: 0;
   box-shadow: none;
-  object-fit: contain;
 }
 
-@media (max-width: 720px) {
-  .topbar h1 { font-size: 34px; }
-  .editor { padding: 16px; gap: 18px; }
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; }
 }

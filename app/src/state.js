@@ -1,76 +1,78 @@
-// Vice Cover state: one plain object, defaults, and URL parsing.
-//
-// Kept dependency-free on purpose: cover.js draws from this state,
-// main.js binds the controls to it, shots.js seeds it from the URL.
-(function (global) {
-  'use strict';
+// Vice Cover — shared editor state.
+// One plain object drives the preview, the PNG export and the staged
+// screenshots, so every surface renders exactly the same cover.
 
-  var SIZES = {
-    square: { width: 1080, height: 1080, label: 'Square 1080 x 1080' },
-    portrait: { width: 1024, height: 1280, label: 'Portrait 1024 x 1280' },
-    wide: { width: 1280, height: 720, label: 'Wide 1280 x 720' },
-  };
-  var LAYOUTS = ['trio', 'quad', 'duo'];
-  var GRADES = ['sunset', 'neon', 'teal'];
+export const LAYOUTS = ['trio', 'quad', 'duo'];
 
-  function defaults() {
-    return {
-      caption: 'VICE CITY',
-      tagline: 'WELCOME BACK TO LEONIDA',
-      photo: 'samples/boulevard.jpg',
-      photo2: 'samples/pier.jpg',
-      layout: 'trio',
-      grade: 'sunset',
-      size: 'square',
-      mix: 0.55,
-      shot: 'editor',
-    };
-  }
+export const GRADES = ['sunset', 'neon', 'teal'];
 
-  function clamp01(value) {
-    var n = Number(value);
-    if (!isFinite(n)) return 0.55;
-    return Math.min(1, Math.max(0, n));
-  }
+export const SIZES = {
+  square: { width: 1080, height: 1080, label: 'Square · 1080 x 1080' },
+  portrait: { width: 1024, height: 1280, label: 'Portrait · 1024 x 1280' },
+  wide: { width: 1280, height: 720, label: 'Wide · 1280 x 720' },
+};
 
-  function pick(value, allowed, fallback) {
-    return allowed.indexOf(value) !== -1 ? value : fallback;
-  }
+export const SIZE_KEYS = Object.keys(SIZES);
 
-  // Parse the editor's URL parameters. Unknown or out-of-range values
-  // fall back to the defaults instead of breaking the preview.
-  // Supported: ?shot=cover|editor, photo, photo2, caption, tagline,
-  // layout=trio|quad|duo, grade=sunset|neon|teal,
-  // size=square|portrait|wide, mix=0..1.
-  function fromSearch(search) {
-    var state = defaults();
-    var params = new URLSearchParams(search || '');
-    if (params.has('shot')) state.shot = pick(params.get('shot'), ['cover', 'editor'], 'editor');
-    if (params.has('photo') && params.get('photo')) state.photo = params.get('photo');
-    if (params.has('photo2') && params.get('photo2')) state.photo2 = params.get('photo2');
-    if (params.has('caption')) state.caption = params.get('caption').slice(0, 24);
-    if (params.has('tagline')) state.tagline = params.get('tagline').slice(0, 48);
-    if (params.has('layout')) state.layout = pick(params.get('layout'), LAYOUTS, 'trio');
-    if (params.has('grade')) state.grade = pick(params.get('grade'), GRADES, 'sunset');
-    if (params.has('size')) state.size = Object.prototype.hasOwnProperty.call(SIZES, params.get('size')) ? params.get('size') : 'square';
-    if (params.has('mix')) state.mix = clamp01(params.get('mix'));
-    return state;
-  }
+export const SAMPLE_PHOTOS = {
+  photo1: 'samples/boulevard.jpg',
+  photo2: 'samples/pier.jpg',
+};
 
-  function sizeOf(state) {
-    return SIZES[state.size] || SIZES.square;
-  }
+export const DEFAULT_STATE = {
+  photo1: SAMPLE_PHOTOS.photo1,
+  photo2: SAMPLE_PHOTOS.photo2,
+  caption: 'VICE CITY',
+  tagline: 'Sunset boulevard, neon nights.',
+  layout: 'trio',
+  grade: 'sunset',
+  size: 'square',
+  // 0-100: how strongly the colour grade washes over the photos.
+  mix: 35,
+};
 
-  function toSearch(state) {
-    var params = new URLSearchParams();
-    params.set('caption', state.caption);
-    params.set('tagline', state.tagline);
-    params.set('layout', state.layout);
-    params.set('grade', state.grade);
-    params.set('size', state.size);
-    params.set('mix', String(state.mix));
-    return '?' + params.toString();
-  }
+const clampInt = (value, min, max) => {
+  const n = Number.parseInt(value, 10);
+  if (Number.isNaN(n)) return null;
+  return Math.min(max, Math.max(min, n));
+};
 
-  global.ViceCoverState = { defaults: defaults, fromSearch: fromSearch, sizeOf: sizeOf, toSearch: toSearch, SIZES: SIZES, LAYOUTS: LAYOUTS, GRADES: GRADES };
-})(window);
+/** A fresh state object with the URL parameters applied on top of the defaults. */
+export function stateFromParams(search) {
+  const state = { ...DEFAULT_STATE };
+  const params = new URLSearchParams(search || '');
+  const caption = params.get('caption');
+  if (caption) state.caption = caption.slice(0, 60);
+  const tagline = params.get('tagline');
+  if (tagline) state.tagline = tagline.slice(0, 90);
+  const photo = params.get('photo');
+  if (photo) state.photo1 = photo;
+  const photo2 = params.get('photo2');
+  if (photo2) state.photo2 = photo2;
+  const layout = params.get('layout');
+  if (layout && LAYOUTS.includes(layout)) state.layout = layout;
+  const grade = params.get('grade');
+  if (grade && GRADES.includes(grade)) state.grade = grade;
+  const size = params.get('size');
+  if (size && Object.hasOwn(SIZES, size)) state.size = size;
+  const mix = clampInt(params.get('mix'), 0, 100);
+  if (mix !== null) state.mix = mix;
+  return state;
+}
+
+/** The pixel dimensions for a state's chosen size. */
+export function sizeOf(state) {
+  return SIZES[state.size] || SIZES.square;
+}
+
+/** Serialise a state back to a query string (for shareable links). */
+export function stateToQuery(state) {
+  const params = new URLSearchParams();
+  params.set('caption', state.caption);
+  params.set('tagline', state.tagline);
+  params.set('layout', state.layout);
+  params.set('grade', state.grade);
+  params.set('size', state.size);
+  params.set('mix', String(state.mix));
+  return params.toString();
+}

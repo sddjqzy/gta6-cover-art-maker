@@ -1,46 +1,19 @@
-// Vice Cover shot staging: arranges a fixed scene from the URL so the
-// screenshots are reproducible.
-//
-//   ?shot=cover   bare cover, no editor chrome, canvas fills the viewport
-//   ?shot=editor  full editor interface (the default)
-// Other parameters (photo, photo2, caption, tagline, layout, grade,
-// size, mix) come from state.js and are applied by main.js first.
-// When the scene is painted, window.__viceShotReady is set to true so
-// a screenshot script knows the frame is ready to capture.
-(function (global) {
-  'use strict';
+// Vice Cover — staged screenshot mode.
+// Reads ?shot=cover|editor from the URL. In cover mode the editor chrome
+// is hidden so the screenshot is just the cover; in editor mode the full
+// interface stays visible. Every other parameter (photo, photo2, caption,
+// tagline, layout, grade, size, mix) is handled by state.js.
 
-  function stage() {
-    var state = global.ViceCover && global.ViceCover.state;
-    if (!state) return;
-    if (state.shot !== 'cover') {
-      global.__viceShotReady = true;
-      return;
-    }
-    global.document.body.classList.add('shot-cover');
-    var canvas = global.document.getElementById('coverCanvas');
-    // In cover mode the canvas is the whole page: size it to the
-    // requested cover size, CSS stretches it to the viewport.
-    global.ViceCover.redraw().then(function () {
-      if (canvas) {
-        canvas.style.width = '100vw';
-        canvas.style.height = '100vh';
-      }
-      global.__viceShotReady = true;
-    }).catch(function (err) {
-      console.error(err);
-      global.__viceShotReady = true;
-    });
-  }
+export function shotMode(search) {
+  const mode = new URLSearchParams(search || '').get('shot');
+  return mode === 'cover' ? 'cover' : 'editor';
+}
 
-  function waitForEditor() {
-    if (global.ViceCover && global.ViceCover.state) { stage(); return; }
-    setTimeout(waitForEditor, 50);
+/** Apply the shot mode to the page: hide the editor chrome for a cover shot. */
+export function prepareShot(document, mode) {
+  document.body.classList.add(mode === 'cover' ? 'shot-cover' : 'shot-editor');
+  document.body.dataset.shot = mode;
+  if (mode === 'cover') {
+    document.title = 'Vice Cover — cover';
   }
-
-  if (global.document.readyState === 'loading') {
-    global.document.addEventListener('DOMContentLoaded', waitForEditor);
-  } else {
-    waitForEditor();
-  }
-})(window);
+}

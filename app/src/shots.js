@@ -1,44 +1,38 @@
-// Vice Cover: fixed scenes for screenshots. A `?shot=` query sets up one
-// scene instead of the empty editor: `cover` hides the controls and shows
-// only the cover, `editor` shows the editor with photos loaded. `photo`
-// picks a sample, `caption` / `tagline` / `layout` / `grade` / `size` set the
-// cover. window.__shotReady is set once the cover has been painted.
+// Fixed scenes for screenshots: ?shot=cover shows the finished cover alone,
+// ?shot=editor shows the editor with a photo loaded. The query also carries
+// the cover's choices: photo, photo2, caption, tagline, layout, grade, size
+// and mix. window.__shotReady is set once the scene has painted.
 
-/** Loads a sample photo by name from app/samples/. */
-export function sampleUrl(name) {
-  return `samples/${name}.jpg`;
+import { LAYOUTS, GRADES, SIZES, PHOTOS } from './state.js';
+
+/** Pick a query value only when it is one of the allowed choices. */
+function pick(query, name, allowed, fallback) {
+  const value = query.get(name);
+  return value !== null && allowed.includes(value) ? value : fallback;
 }
 
-export async function runShot(shot, query, api) {
+/** Read the cover choices out of the URL query, with sane defaults. */
+export function shotState(query) {
+  return {
+    photo: pick(query, 'photo', PHOTOS, 'pier'),
+    photo2: pick(query, 'photo2', PHOTOS, 'boulevard'),
+    caption: query.get('caption') ?? 'VICE CITY NIGHTS',
+    tagline: query.get('tagline') ?? 'Two shores. One score.',
+    layout: pick(query, 'layout', LAYOUTS, 'trio'),
+    grade: pick(query, 'grade', GRADES, 'sunset'),
+    size: pick(query, 'size', Object.keys(SIZES), 'square'),
+    mix: pick(query, 'mix', ['alt', 'one'], 'alt'),
+  };
+}
+
+/**
+ * Set up a screenshot scene: hide the controls for a cover shot, apply the
+ * query's choices through `apply`, wait for the paint, then flag readiness.
+ */
+export async function runShot(shot, query, apply) {
   if (shot === 'cover') document.body.classList.add('shot-cover');
-  const size = query.get('size');
-  if (size) api.setSize(size);
-  const layout = query.get('layout');
-  if (layout) api.setLayout(layout);
-  const grade = query.get('grade');
-  if (grade) api.setGrade(grade);
-  const caption = query.get('caption');
-  if (caption !== null) api.setCaption(caption);
-  const tagline = query.get('tagline');
-  if (tagline !== null) api.setTagline(tagline);
-  const lettering = query.get('lettering');
-  if (lettering) api.setLettering(lettering);
-  // Two photos when the scene asks for them: the second fills the side panels.
-  const photo = query.get('photo') ?? 'pier';
-  const photo2 = query.get('photo2');
-  await api.loadSample(sampleUrl(photo));
-  if (photo2) {
-    await api.loadSample(sampleUrl(photo2));
-    api.setOnePhotoEverywhere(false);
-    if (query.get('mix') === 'alternate') api.setMix('alternate');
-  }
-  if (query.get('zoom')) api.setZoom(Number(query.get('zoom')));
-  // Paint once right away so the scene is visible even if a font is slow;
-  // the second paint below uses the loaded display font.
-  api.redraw();
+  await apply(shotState(query));
   await document.fonts.ready;
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    api.redraw();
-    window.__shotReady = true;
-  }));
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  window.__shotReady = true;
 }

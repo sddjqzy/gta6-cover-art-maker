@@ -1,4 +1,4 @@
-/* Vice Cover: a dark neon editor shell around a bright poster preview. */
+/* Vice Cover's editor: a dark Vice City panel beside the live cover. */
 @font-face {
   font-family: 'Anton';
   src: url('./fonts/Anton-Regular.ttf') format('truetype');
@@ -7,126 +7,39 @@
   font-display: swap;
 }
 
-* { box-sizing: border-box; }
-html, body { margin: 0; min-height: 100%; }
-body {
-  background: #12081f;
-  color: #f4eefc;
-  font: 15px/1.45 'Liberation Sans', Arial, system-ui, sans-serif;
-}
-.app {
-  display: grid;
-  grid-template-columns: 340px 1fr;
-  gap: 24px;
-  max-width: 1360px;
-  margin: 0 auto;
-  padding: 24px;
-}
-.controls { display: flex; flex-direction: column; gap: 16px; }
-.controls h1 {
-  margin: 0;
-  font-family: 'Anton', 'Arial Black', sans-serif;
-  font-size: 42px;
-  letter-spacing: 2px;
-  line-height: 1;
-  background: linear-gradient(90deg, #ffd166, #ff5e78, #00e5ff);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-.controls .lede { margin: -8px 0 0; color: #c9b8e0; }
-.controls h2 {
-  margin: 0 0 6px;
-  font-size: 12px;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: #ff8fb0;
-}
-section {
-  background: #1e0f33;
-  border: 1px solid #3a1d63;
-  border-radius: 12px;
-  padding: 14px;
-}
-.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; font-weight: 700; }
-.field:last-child { margin-bottom: 0; }
-input[type=text] {
-  font: inherit;
-  padding: 9px 10px;
-  border: 1px solid #5b3a8c;
-  border-radius: 8px;
-  background: #12081f;
-  color: #fff;
-}
-input[type=file] { font: inherit; color: #c9b8e0; }
-input[type=range] { width: 100%; accent-color: #ff5e78; }
-.toggle-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.toggle, .action {
-  font: inherit;
-  font-weight: 700;
-  padding: 8px 12px;
-  border: 1px solid #5b3a8c;
-  border-radius: 999px;
-  background: transparent;
-  color: #f4eefc;
-  cursor: pointer;
-}
-.toggle.active { background: #ff5e78; border-color: #ff5e78; color: #fff; }
-.action { background: #ff5e78; border-color: #ff5e78; }
-.action.secondary { background: transparent; }
-.action.big { font-size: 17px; padding: 13px; width: 100%; }
-button:hover { filter: brightness(1.15); }
-.row { display: flex; gap: 8px; flex-wrap: wrap; }
-.row .action { flex: 1; }
-.hint { margin: 0; color: #a68fc4; font-size: 13px; }
-#status { margin: 0; min-height: 1.2em; color: #7cf2c7; }
-#photo-strip { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-#photo-strip .thumb {
-  width: 64px; height: 64px;
-  padding: 0; border: 2px solid #5b3a8c; border-radius: 8px;
-  overflow: hidden; cursor: pointer; background: #12081f;
-}
-#photo-strip .thumb.hero { border-color: #ffd166; }
-#photo-strip img { width: 100%; height: 100%; object-fit: cover; display: block; }
-#photo-count { margin: 8px 0 0; color: #a68fc4; font-size: 13px; }
-.panel-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px; border-radius: 8px; cursor: pointer;
-}
-.panel-row.selected { background: #3a1d63; }
-.panel-row span { font-weight: 700; min-width: 64px; }
-.panel-row select {
-  flex: 1; font: inherit; padding: 6px;
-  border: 1px solid #5b3a8c; border-radius: 6px;
-  background: #12081f; color: #fff;
-}
-.preview {
-  display: flex; flex-direction: column; align-items: center; gap: 12px;
-  min-width: 0;
-}
-.preview p { margin: 0; color: #a68fc4; font-size: 13px; text-align: center; }
-#cover {
-  max-width: 100%;
-  max-height: calc(100vh - 140px);
-  width: auto; height: auto;
-  border-radius: 6px;
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
-  cursor: grab;
-  touch-action: none;
-  background: #fdf8f2;
-}
-#cover:active { cursor: grabbing; }
-/* Screenshot scenes: cover alone, edge to edge. */
+html, body { margin: 0; min-height: 100%; background: #140a1c; color: #f5eef7; font: 15px/1.45 system-ui, sans-serif; }
+.app { display: flex; gap: 28px; align-items: flex-start; justify-content: center; padding: 24px; box-sizing: border-box; }
+
+.controls { display: flex; flex-direction: column; gap: 14px; width: 300px; flex: none; }
+.controls h1 { margin: 0; font-family: 'Anton', sans-serif; font-size: 40px; letter-spacing: 2px; color: #ffb347; text-transform: uppercase; }
+.lede { margin: 0; color: #c9b8d1; }
+
+fieldset { border: 1px solid #4a3554; border-radius: 8px; padding: 10px 12px; margin: 0; }
+legend { font-weight: 700; padding: 0 6px; color: #ffd9a0; }
+.field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; }
+.field input[type=text] { font: inherit; padding: 9px 10px; border: 1px solid #6b5578; border-radius: 6px; background: #241530; color: #fff; }
+.pickers { display: flex; gap: 8px; flex-wrap: wrap; }
+.pickers button, .upload { font: inherit; font-weight: 600; padding: 7px 12px; border: 1px solid #6b5578; border-radius: 6px; background: #2a1836; color: #f5eef7; cursor: pointer; }
+.pickers button:hover, .upload:hover { border-color: #ffb347; }
+.upload input { display: none; }
+.mix { display: flex; gap: 8px; align-items: center; margin-top: 10px; font-weight: 400; color: #c9b8d1; cursor: pointer; }
+.radios { display: flex; flex-direction: column; gap: 6px; }
+.radios label { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+.radios input { accent-color: #ff7a1a; }
+
+#export { font: inherit; font-weight: 700; padding: 12px; border: 0; border-radius: 8px; background: linear-gradient(90deg, #ff7a1a, #d63078); color: #fff; cursor: pointer; }
+#export:hover { filter: brightness(1.1); }
+#status { margin: 0; min-height: 1.4em; color: #8fe3c0; }
+
+canvas { width: min(72vh, calc(100vw - 380px)); height: auto; max-height: calc(100vh - 48px); background: #160a1e; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.55); }
+
+/* Screenshot mode: the cover alone, edge to edge. */
 body.shot-cover .controls { display: none; }
-body.shot-cover .app { display: block; max-width: none; padding: 0; }
-body.shot-cover .preview { display: block; }
-body.shot-cover .preview p { display: none; }
-body.shot-cover #cover {
-  display: block; position: fixed; inset: 0;
-  width: 100vw; height: 100vh;
-  max-width: none; max-height: none;
-  object-fit: contain; border-radius: 0; box-shadow: none;
-}
-@media (max-width: 860px) {
-  .app { grid-template-columns: 1fr; }
+body.shot-cover .app { padding: 0; }
+body.shot-cover canvas { width: 100vw; height: 100vh; max-height: none; object-fit: contain; box-shadow: none; }
+
+@media (max-width: 760px) {
+  .app { flex-direction: column; align-items: center; }
+  .controls { width: 100%; max-width: 480px; }
+  canvas { width: 100%; max-height: none; }
 }
